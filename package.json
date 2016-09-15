@@ -1,0 +1,16 @@
+{
+  "name": "denstartupweek-scrape",
+  "version": "1.0.0",
+  "description": "scrape denver startup week schedule for food",
+  "main": "url_extract_denstartupweek.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": [
+  	"request",
+  	"cheerio",
+  	"promise"
+  ]
+}
