@@ -3,19 +3,25 @@
 var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
+var handlebars = require('handlebars');
 var Promise = require('promise');
 
 var domain = 'https://www.denverstartupweek.org';
-var url = domain + '/schedule/thursday';
-var links = [];
+var url = domain + '/schedule/friday';
+var links = {};
 var matches = [];
-var keywords = ['beverage', 'refreshment', 'food', 'drink']
+var keywords = ['beverage', 'refreshment', 'breakfast', 'lunch', 'waffle', 'pizza', 'burger', 'dinner', 'cocktail']
 
-var regexp = new RegExp('^('+keywords.join('|')+')', 'i');
+var regexp = new RegExp('('+keywords.join('|')+')', 'i');
+
+// get template file
+
+var templateSource = fs.readFileSync('template.html', 'utf-8');
+var template = handlebars.compile(templateSource);
 
 // main execution
 
-var thursLinksRequest = new Promise(function(resolve, reject) {
+var dayLinksRequest = new Promise(function(resolve, reject) {
 
 	request(url, function(error, response, html){
 	    if(!error){
@@ -25,7 +31,7 @@ var thursLinksRequest = new Promise(function(resolve, reject) {
 	            var data = $(this);
 	            var link = data.attr('href');
 
-	            links.push(domain + link);
+	            links[domain + link] = true;
 	        });
 
 	        resolve();
@@ -36,9 +42,9 @@ var thursLinksRequest = new Promise(function(resolve, reject) {
 	});
 });
 
-thursLinksRequest.then(function() {
+dayLinksRequest.then(function() {
 	var eventRequests = [];
-	for (let link of links) {
+	for (let link in links) {
 		var eventRequest = new Promise(function(resolveInner, rejectInner) {
 			// begin inner request
 			request(link, function(error, response, html){
@@ -58,7 +64,9 @@ thursLinksRequest.then(function() {
 								return prev + ' ' + $(e).text();
 							}, '');
 							address = address.replace(/,/g, '');
-							console.info([title, matchText, link, address].join(','));
+							var time = $('.names h6').eq(1).text();
+							var data = {title: title, matchText: matchText, url: link, address: address, time: time};
+							console.info(template(data));
 							return true;
 						}
 					});
